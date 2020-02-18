@@ -1,6 +1,8 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-
-OBJS = RTS_labs.o
+LIBS=-lSDL2
+OBJS = main.o \
+	statistics.o\
+	RNG.o
 
 ifeq ($(BUILD_MODE),debug)
 	CFLAGS += -g
@@ -13,7 +15,7 @@ endif
 all:	RTS_labs
 
 RTS_labs:	$(OBJS)
-	$(CXX) -o $@ $^
+	$(CXX) -o $@ $^ $(LIBS)
 
 %.o:	$(PROJECT_ROOT)%.cpp
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
