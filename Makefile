@@ -2,7 +2,8 @@ PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 LIBS=-lSDL2
 OBJS = main.o \
 	statistics.o\
-	RNG.o
+	RNG.o \
+	app.o
 
 ifeq ($(BUILD_MODE),debug)
 	CFLAGS += -g
