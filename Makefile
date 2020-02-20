@@ -1,10 +1,14 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-LIBS=-lSDL2
+LIBS=-lSDL2 -lgdrive -ljconer -lcurl
 OBJS = main.o \
 	statistics.o\
 	RNG.o \
-	app.o
+	app.o \
+	file_insert.o
 
+INCFILES = -I ~/libgdrive/include
+LIBPATH =  -L ~/libgdrive/ -L ~/libgdrive/lib
+CFLAGS += $(INCFILES) 
 ifeq ($(BUILD_MODE),debug)
 	CFLAGS += -g
 else ifeq ($(BUILD_MODE),run)
@@ -16,7 +20,7 @@ endif
 all:	RTS_labs
 
 RTS_labs:	$(OBJS)
-	$(CXX) -o $@ $^ $(LIBS)
+	$(CXX) -o $@ $^ $(LIBS) $(LIBPATH)
 
 %.o:	$(PROJECT_ROOT)%.cpp
 	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<

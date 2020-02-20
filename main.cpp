@@ -3,10 +3,13 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <ctime>
 #include "defs.h"
 #include "statistics.hpp"
 #include "RNG.h"
 #include "app.hpp"
+using namespace std;
 #define VAR_DISCR 256
 #define VAR_W 1500
 #define VAR_HARM 10
@@ -24,8 +27,8 @@ int main(int argc, char **argv) {
 	SDL_SetRenderDrawColor(app.ren, 0,0,0,0);
 	SDL_RenderClear(app.ren);
 	SDL_SetRenderDrawColor(app.ren, 0,0,0,0);
-	double ampl = 0.5;//RNG.get_float(0, 1);
-	double phi = 0.5;//RNG.get_float(0, 1);
+	double ampl = RNG.get_float(0, 1);
+	double phi = RNG.get_float(0, 1);
 	printf("ampl=%lf, phi=%lf\n", ampl, phi);
 	// here draw line t=0
 	SDL_SetRenderDrawColor(app.ren, 10, 250, 240, 250);
@@ -58,6 +61,28 @@ int main(int argc, char **argv) {
 	}
 	SDL_UpdateWindowSurface(app.win);
 	SDL_RenderPresent(app.ren);
+	clock_t start_mx, end_mx, start_dx, end_dx;
+	start_mx = clock();
+	double Mx = Expected(x_arr, VAR_DISCR);
+	end_mx = clock();
+	double mx_timeused = ((double) (end_mx - start_mx)) / CLOCKS_PER_SEC;
+	start_dx = clock();
+	double Dx = Dispersion(x_arr, VAR_DISCR);
+	end_dx = clock();
+	double dx_timeused = ((double) (end_dx - start_dx)) / CLOCKS_PER_SEC;
+	printf("dx time=%f\n\r", dx_timeused);
+	printf("mx time=%f\n\r", mx_timeused);
+	// write results to file
+	ofstream file;
+	file.open("lab_res.txt");
+	file << "dx time=" << dx_timeused << endl;
+	file << "mx time=" << mx_timeused << endl;
+	file << "Mx=" << Mx << endl;
+	file << "Dx=" << Dx << endl;
+	file.close();
+	// get it into google drive
+	extern int gdrive_out();
+	gdrive_out();
 	while (1){
 		SDL_Event event;
 		SDL_PollEvent(&event);
