@@ -8,10 +8,12 @@
 #ifndef APP_HPP_
 #define APP_HPP_
 #include <SDL2/SDL.h>
+#include <string>
 #define TARGET_NAME "RTS LAB1"
 
 class App{
 private:
+	std::string name;
 	void init_sdl2(void);
 public:
 	int width;
@@ -19,8 +21,8 @@ public:
 	SDL_Renderer* ren;
 	SDL_Window* win;
 	void init(void);
-	void init(int width, int height, int pixelperrealpixel);
-	void init(int width, int height);
+	//void init(int width, int height);
+	void init(int width, int height, char*name);
 	void out(int x, int y);
 	void exit_prog(int stat);
 	int middle_y() {

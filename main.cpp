@@ -15,6 +15,9 @@ using namespace std;
 #define VAR_HARM 10
 
 double x_arr[VAR_DISCR];
+double y_arr[VAR_DISCR];
+double Rp_arr[VAR_DISCR];
+double Rxy_arr[VAR_DISCR];
 int t_arr[VAR_DISCR];
 
 double harmonic(int t, int w, double ampl, double phi){
@@ -22,8 +25,10 @@ double harmonic(int t, int w, double ampl, double phi){
 }
 int main(int argc, char **argv) {
 	RNG_init();
-	App app;
-	app.init(1024, 768, 1);
+	App app, appy, appcorxy;
+	app.init(1024, 768, "X");
+	appy.init(1024, 768, "Y");
+	appcorxy.init(1024, 768, "Rxx");
 	SDL_SetRenderDrawColor(app.ren, 0,0,0,0);
 	SDL_RenderClear(app.ren);
 	SDL_SetRenderDrawColor(app.ren, 0,0,0,0);
@@ -33,18 +38,38 @@ int main(int argc, char **argv) {
 	// here draw line t=0
 	SDL_SetRenderDrawColor(app.ren, 10, 250, 240, 250);
 	SDL_RenderDrawLine(app.ren, app.middle_x(), app.middle_y(), app.end_x(), app.middle_y());
-		double x, x_prev;
+	SDL_SetRenderDrawColor(appy.ren, 10, 250, 240, 250);
+	SDL_RenderDrawLine(appy.ren, appy.middle_x(), appy.middle_y(), appy.end_x(), appy.middle_y());
+	SDL_SetRenderDrawColor(appy.ren, 10, 250, 240, 250);
+	SDL_RenderDrawLine(appy.ren, appy.middle_x(), appy.middle_y(), appy.end_x(), appy.middle_y());
+	SDL_SetRenderDrawColor(appcorxy.ren, 10, 250, 240, 250);
+	SDL_RenderDrawLine(appcorxy.ren, appcorxy.middle_x(), appcorxy.middle_y(), appcorxy.end_x(), appcorxy.middle_y());
+	// find x array
+	double x;
 	for(int t=0; t<VAR_DISCR; t++) {
-		x_prev = x;
 		x=0;
 		for(int harm=0; harm<VAR_HARM; harm++) {
 			x += harmonic(t, harm*VAR_DISCR/VAR_HARM, ampl, phi);
-		//SDL_RenderDrawPoint(app.ren, t*3, -x*30+app.height/2);
 		}
 		x_arr[t] = x;
 		t_arr[t] = t;
 		printf("x=%lf\n", x);
 	}
+
+	ampl = RNG.get_float(0, 1);
+	phi = RNG.get_float(0, 1);
+	double y;
+	for(int t=0; t<VAR_DISCR; t++) {
+		y=0;
+		for(int harm=0; harm<VAR_HARM; harm++) {
+			y += harmonic(t, harm*VAR_DISCR/VAR_HARM, ampl, phi);
+		//SDL_RenderDrawPoint(app.ren, t*3, -x*30+app.height/2);
+		}
+		y_arr[t] = y;
+		t_arr[t] = t;
+		printf("x=%lf\n", y);
+	}
+
 	// draw x(t)
 	std::pair<double*, double*> minmaxx = std::minmax_element(std::begin(x_arr), std::end(x_arr));
 	std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
@@ -61,6 +86,36 @@ int main(int argc, char **argv) {
 	}
 	SDL_UpdateWindowSurface(app.win);
 	SDL_RenderPresent(app.ren);
+
+	// draw y(t)
+	std::pair<double*, double*> minmaxy = std::minmax_element(std::begin(y_arr), std::end(y_arr));
+	//std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
+	// conv
+	double y_offs = (abs(*(minmaxy.first))>abs(*(minmaxy.second)))?abs(*(minmaxy.first)):abs(*(minmaxy.second));
+	//int t_offs = (abs(*(minmaxt.first))>abs(*(minmaxt.second)))?abs(*(minmaxt.first)):abs(*(minmaxt.second));
+	double y_coef = (appy.end_y() - appy.middle_y()) / y_offs;
+	//double t_coef = (appy.end_x() - appy.middle_x()) / t_offs;
+	for(int i=0; i<VAR_DISCR; i++) {
+		appy.out(t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef));
+		SDL_SetRenderDrawColor(appy.ren, 10, 150, 0, 0);
+		if(i+1<VAR_DISCR)
+			SDL_RenderDrawLine(appy.ren, t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef), (t_arr[i+1]*t_coef), app.real_y(y_arr[i+1]*y_coef));
+	}
+	SDL_UpdateWindowSurface(appy.win);
+	SDL_RenderPresent(appy.ren);
+
+	clock_t start_my, end_my, start_dy, end_dy;
+	start_my = clock();
+	double My = Expected(y_arr, VAR_DISCR);
+	end_my = clock();
+	double my_timeused = ((double) (end_my - start_my)) / CLOCKS_PER_SEC;
+	start_dy = clock();
+	double Dy = Dispersion(y_arr, VAR_DISCR);
+	end_dy = clock();
+	double dy_timeused = ((double) (end_dy - start_dy)) / CLOCKS_PER_SEC;
+	printf("dy time=%f\n\r", dy_timeused);
+	printf("my time=%f\n\r", my_timeused);
+
 	clock_t start_mx, end_mx, start_dx, end_dx;
 	start_mx = clock();
 	double Mx = Expected(x_arr, VAR_DISCR);
@@ -72,6 +127,46 @@ int main(int argc, char **argv) {
 	double dx_timeused = ((double) (end_dx - start_dx)) / CLOCKS_PER_SEC;
 	printf("dx time=%f\n\r", dx_timeused);
 	printf("mx time=%f\n\r", mx_timeused);
+
+	// get autocorrelation
+	double Rxx=0;
+	double Rxx_result=0;
+	for(int i=0; i<VAR_DISCR/2; i++) {
+		Rxx=0;
+		for(int j=VAR_DISCR/2; j<VAR_DISCR; j++) {
+			 double Rp = (x_arr[i] - Mx) * (x_arr[j] - Mx);
+			 Rxx += Rp;
+			 Rp_arr[i] = Rp;
+		}
+		Rxx_result += Rxx;
+	}
+
+	// draw Rxx(t)
+	std::pair<double*, double*> minmaxRp = std::minmax_element(std::begin(Rp_arr), std::end(Rp_arr));
+	//std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
+	// conv
+	double Rp_offs = (abs(*(minmaxy.first))>abs(*(minmaxy.second)))?abs(*(minmaxy.first)):abs(*(minmaxy.second));
+	//int t_offs = (abs(*(minmaxt.first))>abs(*(minmaxt.second)))?abs(*(minmaxt.first)):abs(*(minmaxt.second));
+	double Rp_coef = (appcorxy.end_y() - appcorxy.middle_y()) / y_offs;
+	//double t_coef = (appy.end_x() - appy.middle_x()) / t_offs;
+	for(int i=0; i<VAR_DISCR; i++) {
+		appy.out(t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef));
+		SDL_SetRenderDrawColor(appy.ren, 10, 150, 0, 0);
+		if(i+1<VAR_DISCR)
+			SDL_RenderDrawLine(appy.ren, t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef), (t_arr[i+1]*t_coef), app.real_y(y_arr[i+1]*y_coef));
+	}
+	SDL_UpdateWindowSurface(appy.win);
+	SDL_RenderPresent(appy.ren);
+
+
+	// get xy cor
+	double Rxy=0;
+
+	for(int i=0; i<VAR_DISCR/2; i++) {
+		for(int j=0; j<VAR_DISCR/2; j++) {
+			 Rxy += (x_arr[i] - Mx) * (y_arr[j] - My);
+		}
+	}
 	// write results to file
 	ofstream file;
 	file.open("lab_res.txt");
@@ -79,10 +174,16 @@ int main(int argc, char **argv) {
 	file << "mx time=" << mx_timeused << endl;
 	file << "Mx=" << Mx << endl;
 	file << "Dx=" << Dx << endl;
+	file << "dy time=" << dy_timeused << endl;
+	file << "my time=" << my_timeused << endl;
+	file << "My=" << My << endl;
+	file << "Dy=" << Dy << endl;
+	file << "Rxx=" << Rxx_result << endl;
+	//file << "Rxy=" << Rxy_result << endl;
 	file.close();
 	// get it into google drive
 	extern int gdrive_out();
-	gdrive_out();
+	//gdrive_out();
 	while (1){
 		SDL_Event event;
 		SDL_PollEvent(&event);

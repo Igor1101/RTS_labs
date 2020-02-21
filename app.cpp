@@ -14,17 +14,11 @@ void App::init(void)
 	init_sdl2();
 }
 
-void App::init(int width, int height, int pixelperrealpixel)
+void App::init(int width, int height, char*name)
 {
 	App::width = width;
 	App::height = height;
-	init_sdl2();
-}
-
-void App::init(int width, int height)
-{
-	App::width = width;
-	App::height = height;
+	App::name = name;
 	init_sdl2();
 }
 
@@ -37,7 +31,8 @@ void App::init_sdl2(void)
 		pr_err("Couldn't initialize SDL: %s", SDL_GetError());
 		exit(1);
 	}
-	win = SDL_CreateWindow(TARGET_NAME, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, windowFlags);
+	using namespace std;
+	win = SDL_CreateWindow(name.c_str(), SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, windowFlags);
 	if (!win){
 		pr_err("Failed to open %d x %d window: %s", width, height, SDL_GetError());
 		exit(1);
