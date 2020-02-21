@@ -150,13 +150,13 @@ int main(int argc, char **argv) {
 	double Rp_coef = (appcorxy.end_y() - appcorxy.middle_y()) / y_offs;
 	//double t_coef = (appy.end_x() - appy.middle_x()) / t_offs;
 	for(int i=0; i<VAR_DISCR; i++) {
-		appy.out(t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef));
-		SDL_SetRenderDrawColor(appy.ren, 10, 150, 0, 0);
+		appcorxy.out(t_arr[i]*t_coef, appcorxy.real_y(y_arr[i]*Rp_coef));
+		SDL_SetRenderDrawColor(appcorxy.ren, 10, 150, 0, 0);
 		if(i+1<VAR_DISCR)
-			SDL_RenderDrawLine(appy.ren, t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef), (t_arr[i+1]*t_coef), app.real_y(y_arr[i+1]*y_coef));
+			SDL_RenderDrawLine(appcorxy.ren, t_arr[i]*t_coef, appcorxy.real_y(Rp_arr[i]*Rp_coef), (t_arr[i+1]*t_coef), appcorxy.real_y(Rp_arr[i+1]*Rp_coef));
 	}
-	SDL_UpdateWindowSurface(appy.win);
-	SDL_RenderPresent(appy.ren);
+	SDL_UpdateWindowSurface(appcorxy.win);
+	SDL_RenderPresent(appcorxy.ren);
 
 
 	// get xy cor
