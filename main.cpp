@@ -25,21 +25,19 @@ double harmonic(int t, int w, double ampl, double phi){
 }
 int main(int argc, char **argv) {
 	RNG_init();
-	App app, appy, appcorxy;
-	app.init(1024, 768, "X");
+	App appx, appy, appcorxy;
+	appx.init(1024, 768, "X");
 	appy.init(1024, 768, "Y");
 	appcorxy.init(1024, 768, "Rxx");
-	SDL_SetRenderDrawColor(app.ren, 0,0,0,0);
-	SDL_RenderClear(app.ren);
-	SDL_SetRenderDrawColor(app.ren, 0,0,0,0);
+	SDL_SetRenderDrawColor(appx.ren, 0,0,0,0);
+	SDL_RenderClear(appx.ren);
+	SDL_SetRenderDrawColor(appx.ren, 0,0,0,0);
 	double ampl = RNG.get_float(0, 1);
 	double phi = RNG.get_float(0, 1);
 	printf("ampl=%lf, phi=%lf\n", ampl, phi);
 	// here draw line t=0
-	SDL_SetRenderDrawColor(app.ren, 10, 250, 240, 250);
-	SDL_RenderDrawLine(app.ren, app.middle_x(), app.middle_y(), app.end_x(), app.middle_y());
-	SDL_SetRenderDrawColor(appy.ren, 10, 250, 240, 250);
-	SDL_RenderDrawLine(appy.ren, appy.middle_x(), appy.middle_y(), appy.end_x(), appy.middle_y());
+	SDL_SetRenderDrawColor(appx.ren, 10, 250, 240, 250);
+	SDL_RenderDrawLine(appx.ren, appx.middle_x(), appx.middle_y(), appx.end_x(), appx.middle_y());
 	SDL_SetRenderDrawColor(appy.ren, 10, 250, 240, 250);
 	SDL_RenderDrawLine(appy.ren, appy.middle_x(), appy.middle_y(), appy.end_x(), appy.middle_y());
 	SDL_SetRenderDrawColor(appcorxy.ren, 10, 250, 240, 250);
@@ -63,7 +61,7 @@ int main(int argc, char **argv) {
 		y=0;
 		for(int harm=0; harm<VAR_HARM; harm++) {
 			y += harmonic(t, harm*VAR_DISCR/VAR_HARM, ampl, phi);
-		//SDL_RenderDrawPoint(app.ren, t*3, -x*30+app.height/2);
+		//SDL_RenderDrawPoint(appx.ren, t*3, -x*30+appx.height/2);
 		}
 		y_arr[t] = y;
 		t_arr[t] = t;
@@ -76,16 +74,16 @@ int main(int argc, char **argv) {
 	// conv
 	double x_offs = (abs(*(minmaxx.first))>abs(*(minmaxx.second)))?abs(*(minmaxx.first)):abs(*(minmaxx.second));
 	int t_offs = (abs(*(minmaxt.first))>abs(*(minmaxt.second)))?abs(*(minmaxt.first)):abs(*(minmaxt.second));
-	double x_coef = (app.end_y() - app.middle_y()) / x_offs;
-	double t_coef = (app.end_x() - app.middle_x()) / t_offs;
+	double x_coef = (appx.end_y() - appx.middle_y()) / x_offs;
+	double t_coef = (appx.end_x() - appx.middle_x()) / t_offs;
 	for(int i=0; i<VAR_DISCR; i++) {
-		app.out(t_arr[i]*t_coef, app.real_y(x_arr[i]*x_coef));
-		SDL_SetRenderDrawColor(app.ren, 10, 150, 0, 0);
+		appx.out(t_arr[i]*t_coef, appx.real_y(x_arr[i]*x_coef));
+		SDL_SetRenderDrawColor(appx.ren, 10, 150, 0, 0);
 		if(i+1<VAR_DISCR)
-			SDL_RenderDrawLine(app.ren, t_arr[i]*t_coef, app.real_y(x_arr[i]*x_coef), (t_arr[i+1]*t_coef), app.real_y(x_arr[i+1]*x_coef));
+			SDL_RenderDrawLine(appx.ren, t_arr[i]*t_coef, appx.real_y(x_arr[i]*x_coef), (t_arr[i+1]*t_coef), appx.real_y(x_arr[i+1]*x_coef));
 	}
-	SDL_UpdateWindowSurface(app.win);
-	SDL_RenderPresent(app.ren);
+	SDL_UpdateWindowSurface(appx.win);
+	SDL_RenderPresent(appx.ren);
 
 	// draw y(t)
 	std::pair<double*, double*> minmaxy = std::minmax_element(std::begin(y_arr), std::end(y_arr));
@@ -99,7 +97,7 @@ int main(int argc, char **argv) {
 		appy.out(t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef));
 		SDL_SetRenderDrawColor(appy.ren, 10, 150, 0, 0);
 		if(i+1<VAR_DISCR)
-			SDL_RenderDrawLine(appy.ren, t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef), (t_arr[i+1]*t_coef), app.real_y(y_arr[i+1]*y_coef));
+			SDL_RenderDrawLine(appy.ren, t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef), (t_arr[i+1]*t_coef), appx.real_y(y_arr[i+1]*y_coef));
 	}
 	SDL_UpdateWindowSurface(appy.win);
 	SDL_RenderPresent(appy.ren);
@@ -188,8 +186,8 @@ int main(int argc, char **argv) {
 		SDL_Event event;
 		SDL_PollEvent(&event);
 		if(event.type == SDL_QUIT || event.key.keysym.sym == 'q') {
-			SDL_DestroyRenderer(app.ren);
-			SDL_DestroyWindow(app.win);
+			SDL_DestroyRenderer(appx.ren);
+			SDL_DestroyWindow(appx.win);
 			SDL_Quit();
 			exit(0);
 		}
