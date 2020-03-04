@@ -58,3 +58,15 @@ void App::out(int x, int y)
 	SDL_SetRenderDrawColor(ren, 96, 128, 255, 255);
 	SDL_RenderDrawRect(ren, &rect);
 }
+
+void App::clear_win()
+{
+	SDL_SetRenderDrawColor(ren, 0,0,0,0);
+	SDL_RenderClear(ren);
+}
+
+void App::draw_middleline()
+{
+	SDL_SetRenderDrawColor(ren, 10, 250, 240, 250);
+	SDL_RenderDrawLine(ren, middle_x(), middle_y(), end_x(), middle_y());
+}

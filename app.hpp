@@ -43,6 +43,8 @@ public:
 	int real_y(int y){
 		return -y+middle_y();
 	}
+	void clear_win();
+	void draw_middleline();
 };
 
 #endif /* APP_HPP_ */

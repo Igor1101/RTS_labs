@@ -26,22 +26,18 @@ double harmonic(int t, int w, double ampl, double phi){
 int main(int argc, char **argv) {
 	RNG_init();
 	App appx, appy, appcorxy;
-	appx.init(1024, 768, "X");
-	appy.init(1024, 768, "Y");
-	appcorxy.init(1024, 768, "Rxx");
-	SDL_SetRenderDrawColor(appx.ren, 0,0,0,0);
-	SDL_RenderClear(appx.ren);
-	SDL_SetRenderDrawColor(appx.ren, 0,0,0,0);
+	// drawing windows
+	appx.init(1024, 768, (char*)"X");
+	appy.init(1024, 768, (char*)"Y");
+	appcorxy.init(1024, 768, (char*)"Rxx");
+	appx.clear_win();
 	double ampl = RNG.get_float(0, 1);
 	double phi = RNG.get_float(0, 1);
 	printf("ampl=%lf, phi=%lf\n", ampl, phi);
 	// here draw line t=0
-	SDL_SetRenderDrawColor(appx.ren, 10, 250, 240, 250);
-	SDL_RenderDrawLine(appx.ren, appx.middle_x(), appx.middle_y(), appx.end_x(), appx.middle_y());
-	SDL_SetRenderDrawColor(appy.ren, 10, 250, 240, 250);
-	SDL_RenderDrawLine(appy.ren, appy.middle_x(), appy.middle_y(), appy.end_x(), appy.middle_y());
-	SDL_SetRenderDrawColor(appcorxy.ren, 10, 250, 240, 250);
-	SDL_RenderDrawLine(appcorxy.ren, appcorxy.middle_x(), appcorxy.middle_y(), appcorxy.end_x(), appcorxy.middle_y());
+	appx.draw_middleline();
+	appy.draw_middleline();
+	appcorxy.draw_middleline();
 	// find x array
 	double x;
 	for(int t=0; t<VAR_DISCR; t++) {
