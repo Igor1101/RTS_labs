@@ -31,9 +31,9 @@ int main(int argc, char **argv) {
 	appy.init(1024, 768, (char*)"Y");
 	appcorxy.init(1024, 768, (char*)"Rxx");
 	appx.clear_win();
-	double ampl = RNG.get_float(0, 1);
-	double phi = RNG.get_float(0, 1);
-	printf("ampl=%lf, phi=%lf\n", ampl, phi);
+	double amplx = RNG.get_float(0, 1);
+	double phix = RNG.get_float(0, 1);
+	printf("ampl=%lf, phi=%lf\n", amplx, phix);
 	// here draw line t=0
 	appx.draw_middleline();
 	appy.draw_middleline();
@@ -43,21 +43,20 @@ int main(int argc, char **argv) {
 	for(int t=0; t<VAR_DISCR; t++) {
 		x=0;
 		for(int harm=0; harm<VAR_HARM; harm++) {
-			x += harmonic(t, harm*VAR_DISCR/VAR_HARM, ampl, phi);
+			x += harmonic(t, harm*VAR_DISCR/VAR_HARM, amplx, phix);
 		}
 		x_arr[t] = x;
 		t_arr[t] = t;
 		printf("x=%lf\n", x);
 	}
 
-	ampl = RNG.get_float(0, 1);
-	phi = RNG.get_float(0, 1);
+	double amply = RNG.get_float(0, 1);
+	double phiy = RNG.get_float(0, 1);
 	double y;
 	for(int t=0; t<VAR_DISCR; t++) {
 		y=0;
 		for(int harm=0; harm<VAR_HARM; harm++) {
-			y += harmonic(t, harm*VAR_DISCR/VAR_HARM, ampl, phi);
-		//SDL_RenderDrawPoint(appx.ren, t*3, -x*30+appx.height/2);
+			y += harmonic(t, harm*VAR_DISCR/VAR_HARM, amply, phiy);
 		}
 		y_arr[t] = y;
 		t_arr[t] = t;
@@ -78,9 +77,7 @@ int main(int argc, char **argv) {
 		if(i+1<VAR_DISCR)
 			SDL_RenderDrawLine(appx.ren, t_arr[i]*t_coef, appx.real_y(x_arr[i]*x_coef), (t_arr[i+1]*t_coef), appx.real_y(x_arr[i+1]*x_coef));
 	}
-	SDL_UpdateWindowSurface(appx.win);
-	SDL_RenderPresent(appx.ren);
-
+	appx.refresh_win();
 	// draw y(t)
 	std::pair<double*, double*> minmaxy = std::minmax_element(std::begin(y_arr), std::end(y_arr));
 	//std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
@@ -95,9 +92,7 @@ int main(int argc, char **argv) {
 		if(i+1<VAR_DISCR)
 			SDL_RenderDrawLine(appy.ren, t_arr[i]*t_coef, appy.real_y(y_arr[i]*x_coef), (t_arr[i+1]*t_coef), appx.real_y(y_arr[i+1]*y_coef));
 	}
-	SDL_UpdateWindowSurface(appy.win);
-	SDL_RenderPresent(appy.ren);
-
+	appy.refresh_win();
 	clock_t start_my, end_my, start_dy, end_dy;
 	start_my = clock();
 	double My = Expected(y_arr, VAR_DISCR);
@@ -149,9 +144,7 @@ int main(int argc, char **argv) {
 		if(i+1<VAR_DISCR)
 			SDL_RenderDrawLine(appcorxy.ren, t_arr[i]*t_coef, appcorxy.real_y(Rp_arr[i]*Rp_coef), (t_arr[i+1]*t_coef), appcorxy.real_y(Rp_arr[i+1]*Rp_coef));
 	}
-	SDL_UpdateWindowSurface(appcorxy.win);
-	SDL_RenderPresent(appcorxy.ren);
-
+	appcorxy.refresh_win();
 
 	// get xy cor
 	double Rxy=0;

@@ -70,3 +70,9 @@ void App::draw_middleline()
 	SDL_SetRenderDrawColor(ren, 10, 250, 240, 250);
 	SDL_RenderDrawLine(ren, middle_x(), middle_y(), end_x(), middle_y());
 }
+
+void App::refresh_win()
+{
+	SDL_UpdateWindowSurface(win);
+	SDL_RenderPresent(ren);
+}

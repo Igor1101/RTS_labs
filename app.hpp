@@ -45,6 +45,7 @@ public:
 	}
 	void clear_win();
 	void draw_middleline();
+	void refresh_win();
 };
 
 #endif /* APP_HPP_ */
