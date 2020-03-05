@@ -10,7 +10,7 @@
 #include "RNG.h"
 #include "app.hpp"
 using namespace std;
-#define VAR_DISCR 256
+#define VAR_DISCR  256
 #define VAR_W 1500
 #define VAR_HARM 10
 
@@ -25,11 +25,11 @@ double harmonic(int t, int w, double ampl, double phi){
 }
 int main(int argc, char **argv) {
 	RNG_init();
-	App appx, appy, appcorxy;
+	App appx, appy, appcorxx, appcorxy;
 	// drawing windows
 	appx.init(1024, 768, (char*)"X");
 	appy.init(1024, 768, (char*)"Y");
-	appcorxy.init(1024, 768, (char*)"Rxx");
+	appcorxx.init(1024, 768, (char*)"Rxx");
 	appx.clear_win();
 	double amplx = RNG.get_float(0, 1);
 	double phix = RNG.get_float(0, 1);
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
 	// here draw line t=0
 	appx.draw_middleline();
 	appy.draw_middleline();
-	appcorxy.draw_middleline();
+	appcorxx.draw_middleline();
 	// find x array
 	double x;
 	for(int t=0; t<VAR_DISCR; t++) {
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 		}
 		x_arr[t] = x;
 		t_arr[t] = t;
-		printf("x=%lf\n", x);
+		printf("x[%i]=%f\n\r", t, x_arr[t]);
 	}
 
 	double amply = RNG.get_float(0, 1);
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 		}
 		y_arr[t] = y;
 		t_arr[t] = t;
-		printf("x=%lf\n", y);
+		printf("y=%lf\n", y);
 	}
 
 	// draw x(t)
@@ -118,33 +118,30 @@ int main(int argc, char **argv) {
 	printf("mx time=%f\n\r", mx_timeused);
 
 	// get autocorrelation
-	double Rxx=0;
 	double Rxx_result=0;
-	for(int i=0; i<VAR_DISCR/2; i++) {
-		Rxx=0;
-		for(int j=VAR_DISCR/2; j<VAR_DISCR; j++) {
-			 double Rp = (x_arr[i] - Mx) * (x_arr[j] - Mx);
-			 Rxx += Rp;
-			 Rp_arr[i] = Rp;
+	for(int i0=0, j1=VAR_DISCR; i0<VAR_DISCR; i0++, j1--) {
+		Rp_arr[i0] = 0;
+		for(int i=i0, j=VAR_DISCR-(j1-i0); i<VAR_DISCR; i++, j++) {
+			 double Rp = (x_arr[i] - Mx) * (x_arr[j1] - Mx);
+			 Rp_arr[i0] += Rp;
 		}
-		Rxx_result += Rxx;
+		Rp_arr[i] /= (VAR_DISCR/2-1);
+		printf("Rxx[%i]=%f\n\r", i0, Rp_arr[i0]);
 	}
 
 	// draw Rxx(t)
 	std::pair<double*, double*> minmaxRp = std::minmax_element(std::begin(Rp_arr), std::end(Rp_arr));
 	//std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
 	// conv
-	double Rp_offs = (abs(*(minmaxy.first))>abs(*(minmaxy.second)))?abs(*(minmaxy.first)):abs(*(minmaxy.second));
-	//int t_offs = (abs(*(minmaxt.first))>abs(*(minmaxt.second)))?abs(*(minmaxt.first)):abs(*(minmaxt.second));
-	double Rp_coef = (appcorxy.end_y() - appcorxy.middle_y()) / y_offs;
-	//double t_coef = (appy.end_x() - appy.middle_x()) / t_offs;
+	double Rp_offs = (abs(*(minmaxRp.first))>abs(*(minmaxRp.second)))?abs(*(minmaxRp.first)):abs(*(minmaxRp.second));
+	double Rp_coef = (appcorxx.end_y() - appcorxx.middle_y()) / Rp_offs;
 	for(int i=0; i<VAR_DISCR; i++) {
-		appcorxy.out(t_arr[i]*t_coef, appcorxy.real_y(y_arr[i]*Rp_coef));
-		SDL_SetRenderDrawColor(appcorxy.ren, 10, 150, 0, 0);
+		appcorxx.out(t_arr[i]*t_coef, appcorxx.real_y(Rp_arr[i]*Rp_coef));
+		SDL_SetRenderDrawColor(appcorxx.ren, 10, 150, 0, 0);
 		if(i+1<VAR_DISCR)
-			SDL_RenderDrawLine(appcorxy.ren, t_arr[i]*t_coef, appcorxy.real_y(Rp_arr[i]*Rp_coef), (t_arr[i+1]*t_coef), appcorxy.real_y(Rp_arr[i+1]*Rp_coef));
+			SDL_RenderDrawLine(appcorxx.ren, t_arr[i]*t_coef, appcorxx.real_y(Rp_arr[i]*Rp_coef), (t_arr[i+1]*t_coef), appcorxx.real_y(Rp_arr[i+1]*Rp_coef));
 	}
-	appcorxy.refresh_win();
+	appcorxx.refresh_win();
 
 	// get xy cor
 	double Rxy=0;
