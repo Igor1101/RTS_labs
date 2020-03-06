@@ -10,7 +10,7 @@
 #include "RNG.h"
 #include "app.hpp"
 using namespace std;
-#define VAR_DISCR  256
+#define VAR_DISCR  1024
 #define VAR_W 1500
 #define VAR_HARM 10
 
