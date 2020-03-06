@@ -120,17 +120,19 @@ int main(int argc, char **argv) {
 	printf("dx time=%f\n\r", dx_timeused);
 	printf("mx time=%f\n\r", mx_timeused);
 
+	clock_t start_Rxx, end_Rxx, start_Rxy, end_Rxy;
 	// get autocorrelation
+	start_Rxx = clock();
 	for(int tau=0; tau<VAR_DISCR; tau++) {
 		Rxx_arr[tau] = 0;
 		for(int i=tau; i<VAR_DISCR-tau; i++) {
 			 double Rxx = (x_arr[i] - Mx) * (x_arr[i+tau] - Mx);
 			 Rxx_arr[tau] += Rxx;
 		}
-		//Rxx_arr[i] /= (VAR_DISCR/2-1);
-		printf("Rxx[%i]=%f\n\r", tau, Rxx_arr[tau]);
+		Rxx_arr[tau] /= (VAR_DISCR/2-1);
+		//printf("Rxx[%i]=%f\n\r", tau, Rxx_arr[tau]);
 	}
-
+	end_Rxx = clock();
 	// draw Rxx(t)
 	std::pair<double*, double*> minmaxRxx = std::minmax_element(std::begin(Rxx_arr), std::end(Rxx_arr));
 	//std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
@@ -147,16 +149,17 @@ int main(int argc, char **argv) {
 
 
 	// get correlation
+	start_Rxy = clock();
 	for(int tau=0; tau<VAR_DISCR; tau++) {
 		Rxy_arr[tau] = 0;
 		for(int i=tau; i<VAR_DISCR-tau; i++) {
 			 double Rxy = (x_arr[i] - Mx) * (y_arr[i+tau] - Mx);
 			 Rxy_arr[tau] += Rxy;
 		}
-		//Rxx_arr[i] /= (VAR_DISCR/2-1);
-		printf("Rxy[%i]=%f\n\r", tau, Rxy_arr[tau]);
+		Rxy_arr[tau] /= (VAR_DISCR/2-1);
+		//printf("Rxy[%i]=%f\n\r", tau, Rxy_arr[tau]);
 	}
-
+	end_Rxy = clock();
 	// draw Rxx(t)
 	std::pair<double*, double*> minmaxRxy = std::minmax_element(std::begin(Rxy_arr), std::end(Rxy_arr));
 	//std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
@@ -172,6 +175,8 @@ int main(int argc, char **argv) {
 	appcorxy.refresh_win();
 
 
+	double Rxx_timeused = ((double) (end_Rxx - start_Rxx)) / CLOCKS_PER_SEC;
+	double Rxy_timeused = ((double) (end_Rxy - start_Rxy)) / CLOCKS_PER_SEC;
 	// get xy cor
 	// write results to file
 	ofstream file;
@@ -184,7 +189,8 @@ int main(int argc, char **argv) {
 	file << "my time=" << my_timeused << endl;
 	file << "My=" << My << endl;
 	file << "Dy=" << Dy << endl;
-	//file << "Rxy=" << Rxy_result << endl;
+	file << "Rxx time=" << Rxx_timeused << endl;
+	file << "Rxy time=" << Rxy_timeused << endl;
 	file.close();
 	// get it into google drive
 	extern int gdrive_out();
