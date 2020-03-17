@@ -9,6 +9,7 @@
 #include "statistics.hpp"
 #include "RNG.h"
 #include "app.hpp"
+#include <new>
 using namespace std;
 #define VAR_DISCR  256
 #define VAR_W 1500
@@ -21,6 +22,24 @@ double harmonic(int t, int w, double ampl, double phi){
 double freal[VAR_DISCR];
 double fimage[VAR_DISCR];
 double DFT_Farr[VAR_DISCR];
+typedef struct {
+	double Re;
+	double Im;
+}comple;
+typedef comple * complep;
+comple** Ws;
+void DFT_wcalc(int N) {
+	Ws = new complep[N];
+	for(int p=0; p<N; p++) {
+		Ws[p] = new comple[N];
+		for(int k=0; k<N; k++) {
+			double Re = cos(2 * M_PI / N * p * k);
+			double Im = sin(2 * M_PI / N * p * k);
+			Ws[p][k].Im = Im;
+			Ws[p][k].Re = Re;
+		}
+	}
+}
 void DFT_f(void)
 {
 	const int N = VAR_DISCR;
@@ -28,14 +47,15 @@ void DFT_f(void)
 		freal[p] = 0;
 		fimage[p] = 0;
 		for(int k=0; k<N; k++) {
-			freal[p] += x_arr[k] * cos(2 * M_PI / N * p * k);
-			fimage[p] += x_arr[k] * sin(2 * M_PI / N * p * k);
+			freal[p] += x_arr[k] * Ws[p][k].Re;
+			fimage[p] += x_arr[k] * Ws[p][k].Im;
 		}
 		DFT_Farr[p] = sqrt(freal[p] * freal[p] + fimage[p]*fimage[p]);
 	}
 }
 int main(int argc, char **argv) {
 	RNG_init();
+	DFT_wcalc(VAR_DISCR);
 	App appx, app_dft;
 	// drawing windows
 	appx.init(1024, 768, (char*)"X");
