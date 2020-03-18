@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <iostream>
+#include <new>
 #include <fstream>
 #include <ctime>
 #include "defs.h"
@@ -20,26 +21,66 @@ double harmonic(int t, int w, double ampl, double phi){
 }
 double freal[VAR_DISCR];
 double fimage[VAR_DISCR];
-double DFT_Farr[VAR_DISCR];
-void DFT_f(void)
+double FFT_Farr[VAR_DISCR];
+
+typedef struct {
+	double r;
+	double i;
+}w_type;
+
+void w_mac( w_type* cc, w_type a, w_type w, w_type b )
 {
-	const int N = VAR_DISCR;
-	for(int p=0; p<N; p++) {
-		freal[p] = 0;
-		fimage[p] = 0;
-		for(int k=0; k<N; k++) {
-			freal[p] += x_arr[k] * cos(2 * M_PI / N * p * k);
-			fimage[p] += x_arr[k] * sin(2 * M_PI / N * p * k);
-		}
-		DFT_Farr[p] = sqrt(freal[p] * freal[p] + fimage[p]*fimage[p]);
+	cc->r = a.r + w.r * b.r - w.i * b.i;
+	cc->i = a.i + w.r * b.i + w.i * b.r;
+}
+
+void floating_to_w(w_type result[], double arr[], int n)
+{
+	for(int i=0; i<n; i++) {
+		result[i].r = arr[i];
+		result[i].i = 0;
 	}
 }
+
+void w_to_floating(double result[], w_type arr[], int n)
+{
+	for(int i=0; i<n; i++) {
+		result[i] = sqrt(arr[i].r * arr[i].r + arr[i].i * arr[i].i);
+	}
+}
+
+void FFT_f(w_type result[], w_type arr[], int n)
+{
+	// stop recursion here
+	if(n == 1)
+		return;
+	// additional arrays
+	w_type* A = new w_type[n/2];
+	w_type* B = new w_type[n/2];
+	// fill them accordingly with shift
+	for(int i=0; i<n/2; i++) {
+		A[i] = arr[i*2];
+		B[i] = arr[i*2+1];
+	}
+	//
+	FFT_f(A, A, n/2);
+	FFT_f(B, B, n/2);
+	w_type w;
+	for(int i=0; i<n; i++) {
+		w.r = cos(2 * M_PI / n * i);
+		w.i = sin(2 * M_PI / n * i);
+		w_mac(&result[i], A[i% (n/2)], w, B[i % (n/2)]);
+	}
+	delete []A;
+	delete []B;
+}
+
 int main(int argc, char **argv) {
 	RNG_init();
 	App appx, app_dft;
 	// drawing windows
 	appx.init(1024, 768, (char*)"X");
-	app_dft.init(1024,768, (char*)"DFT F");
+	app_dft.init(1024,768, (char*)"FFT F");
 	appx.clear_win();
 	app_dft.clear_win();
 	double amplx = RNG.get_float(0, 1);
@@ -60,7 +101,11 @@ int main(int argc, char **argv) {
 		printf("x[%i]=%f\n\r", t, x_arr[t]);
 	}
 	// Find DFT
-	DFT_f();
+	//DFT_f();
+	w_type* x_arrw = new w_type[VAR_DISCR];
+	floating_to_w(x_arrw, x_arr, VAR_DISCR);
+	FFT_f(x_arrw, x_arrw, VAR_DISCR);
+	w_to_floating(FFT_Farr, x_arrw, VAR_DISCR);
 	// draw x(t)
 	std::pair<double*, double*> minmaxx = std::minmax_element(std::begin(x_arr), std::end(x_arr));
 	std::pair<int*, int*> minmaxt = std::minmax_element(std::begin(t_arr), std::end(t_arr));
@@ -79,15 +124,15 @@ int main(int argc, char **argv) {
 
 
 	// draw x DFT spectrum(t)
-	std::pair<double*, double*> minmax_dft = std::minmax_element(std::begin(DFT_Farr), std::end(DFT_Farr));
+	std::pair<double*, double*> minmax_dft = std::minmax_element(std::begin(FFT_Farr), std::end(FFT_Farr));
 	// conv
 	double dft_offs = (abs(*(minmax_dft.first))>abs(*(minmax_dft.second)))?abs(*(minmax_dft.first)):abs(*(minmax_dft.second));
 	double dft_coef = (app_dft.end_y() - app_dft.middle_y()) / dft_offs;
 	for(int i=0; i<VAR_DISCR; i++) {
-		app_dft.out(t_arr[i]*t_coef, app_dft.real_y(DFT_Farr[i]*dft_coef));
+		app_dft.out(t_arr[i]*t_coef, app_dft.real_y(FFT_Farr[i]*dft_coef));
 		SDL_SetRenderDrawColor(app_dft.ren, 10, 150, 0, 0);
 		if(i+1<VAR_DISCR)
-			SDL_RenderDrawLine(app_dft.ren, t_arr[i]*t_coef, app_dft.real_y(DFT_Farr[i]*dft_coef), (t_arr[i+1]*t_coef), app_dft.real_y(DFT_Farr[i+1]*dft_coef));
+			SDL_RenderDrawLine(app_dft.ren, t_arr[i]*t_coef, app_dft.real_y(FFT_Farr[i]*dft_coef), (t_arr[i+1]*t_coef), app_dft.real_y(FFT_Farr[i+1]*dft_coef));
 	}
 	app_dft.refresh_win();
 
