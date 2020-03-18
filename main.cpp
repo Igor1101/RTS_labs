@@ -100,8 +100,7 @@ int main(int argc, char **argv) {
 		t_arr[t] = t;
 		printf("x[%i]=%f\n\r", t, x_arr[t]);
 	}
-	// Find DFT
-	//DFT_f();
+	// Find FFT
 	w_type* x_arrw = new w_type[VAR_DISCR];
 	floating_to_w(x_arrw, x_arr, VAR_DISCR);
 	FFT_f(x_arrw, x_arrw, VAR_DISCR);
@@ -123,7 +122,7 @@ int main(int argc, char **argv) {
 	appx.refresh_win();
 
 
-	// draw x DFT spectrum(t)
+	// draw x FFT spectrum(t)
 	std::pair<double*, double*> minmax_dft = std::minmax_element(std::begin(FFT_Farr), std::end(FFT_Farr));
 	// conv
 	double dft_offs = (abs(*(minmax_dft.first))>abs(*(minmax_dft.second)))?abs(*(minmax_dft.first)):abs(*(minmax_dft.second));
